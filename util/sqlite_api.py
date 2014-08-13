@@ -35,8 +35,9 @@ class SqliteApi:
 		self.db.commit()
 
 	def execute_sql(self, sql):
-		self.cursor.execute(sql)
-		return self.db.commit()
+		res= self.cursor.execute(sql)
+		self.db.commit()
+		return res
 
 	def get_one(self, sql):
 		self.cursor.execute(sql)

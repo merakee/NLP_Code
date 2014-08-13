@@ -5,7 +5,8 @@
 # Bijit Halder
 # Merakee LLC.
 # Aug 2014
-
+import sys
+sys.path.append('../util')
 import twitter
 import sqlite_api
 import string
