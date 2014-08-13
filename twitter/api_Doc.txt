@@ -1,0 +1,689 @@
+Help on package twitter:
+
+NAME
+    twitter - The minimalist yet fully featured Twitter API and Python toolset.
+
+FILE
+    /Library/Python/2.7/site-packages/twitter/__init__.py
+
+DESCRIPTION
+    The Twitter and TwitterStream classes are the key to building your own
+    Twitter-enabled applications.
+    
+    
+    The Twitter class
+    -----------------
+    
+    The minimalist yet fully featured Twitter API class.
+    
+    Get RESTful data by accessing members of this class. The result
+    is decoded python objects (lists and dicts).
+    
+    The Twitter API is documented at:
+    
+      http://dev.twitter.com/doc
+    
+    
+    Examples::
+    
+        t = Twitter(
+            auth=OAuth(token, token_key, con_secret, con_secret_key)))
+    
+        # Get your "home" timeline
+        t.statuses.home_timeline()
+    
+        # Get a particular friend's tweets
+        t.statuses.user_timeline(user_id="billybob")
+    
+        # Update your status
+        t.statuses.update(
+            status="Using @sixohsix's sweet Python Twitter Tools.")
+    
+        # Send a direct message
+        t.direct_messages.new(
+            user="billybob",
+            text="I think yer swell!")
+    
+        # Get the members of tamtar's list "Things That Are Rad"
+        t._("tamtar")._("things-that-are-rad").members()
+    
+        # Note how the magic `_` method can be used to insert data
+        # into the middle of a call. You can also use replacement:
+        t.user.list.members(user="tamtar", list="things-that-are-rad")
+    
+        # An *optional* `_timeout` parameter can also be used for API
+        # calls which take much more time than normal or twitter stops
+        # responding for some reasone
+        t.users.lookup(
+            screen_name=','.join(A_LIST_OF_100_SCREEN_NAMES),             _timeout=1)
+    
+    
+    
+    Searching Twitter::
+    
+        # Search for the latest tweets about #pycon
+        t.search.tweets(q="#pycon")
+    
+    
+    Using the data returned
+    -----------------------
+    
+    Twitter API calls return decoded JSON. This is converted into
+    a bunch of Python lists, dicts, ints, and strings. For example::
+    
+        x = twitter.statuses.home_timeline()
+    
+        # The first 'tweet' in the timeline
+        x[0]
+    
+        # The screen name of the user who wrote the first 'tweet'
+        x[0]['user']['screen_name']
+    
+    
+    Getting raw XML data
+    --------------------
+    
+    If you prefer to get your Twitter data in XML format, pass
+    format="xml" to the Twitter object when you instantiate it::
+    
+        twitter = Twitter(format="xml")
+    
+    The output will not be parsed in any way. It will be a raw string
+    of XML.
+    
+    
+    The TwitterStream class
+    -----------------------
+    
+    The TwitterStream object is an interface to the Twitter Stream
+    API. This can be used pretty much the same as the Twitter class
+    except the result of calling a method will be an iterator that
+    yields objects decoded from the stream. For example::
+    
+        twitter_stream = TwitterStream(auth=OAuth(...))
+        iterator = twitter_stream.statuses.sample()
+    
+        for tweet in iterator:
+            ...do something with this tweet...
+    
+    The iterator will yield until the TCP connection breaks. When the
+    connection breaks, the iterator yields `{'hangup': True}`, and
+    raises `StopIteration` if iterated again.
+    
+    Similarly, if the stream does not produce heartbeats for more than
+    90 seconds, the iterator yields `{'hangup': True,
+    'heartbeat_timeout': True}`, and raises `StopIteration` if
+    iterated again.
+    
+    The `timeout` parameter controls the maximum time between
+    yields. If it is nonzero, then the iterator will yield either
+    stream data or `{'timeout': True}` within the timeout period. This
+    is useful if you want your program to do other stuff in between
+    waiting for tweets.
+    
+    The `block` parameter sets the stream to be fully non-blocking. In
+    this mode, the iterator always yields immediately. It returns
+    stream data, or `None`. Note that `timeout` supercedes this
+    argument, so it should also be set `None` to use this mode.
+    
+    Twitter Response Objects
+    ------------------------
+    
+    Response from a twitter request. Behaves like a list or a string
+    (depending on requested format) but it has a few other interesting
+    attributes.
+    
+    `headers` gives you access to the response headers as an
+    httplib.HTTPHeaders instance. You can do
+    `response.headers.get('h')` to retrieve a header.
+    
+    Authentication
+    --------------
+    
+    You can authenticate with Twitter in three ways: NoAuth, OAuth, or
+    UserPassAuth. Get help() on these classes to learn how to use them.
+    
+    OAuth is probably the most useful.
+    
+    
+    Working with OAuth
+    ------------------
+    
+    Visit the Twitter developer page and create a new application:
+    
+        https://dev.twitter.com/apps/new
+    
+    This will get you a CONSUMER_KEY and CONSUMER_SECRET.
+    
+    When users run your application they have to authenticate your app
+    with their Twitter account. A few HTTP calls to twitter are required
+    to do this. Please see the twitter.oauth_dance module to see how this
+    is done. If you are making a command-line app, you can use the
+    oauth_dance() function directly.
+    
+    Performing the "oauth dance" gets you an ouath token and oauth secret
+    that authenticate the user with Twitter. You should save these for
+    later so that the user doesn't have to do the oauth dance again.
+    
+    read_token_file and write_token_file are utility methods to read and
+    write OAuth token and secret key values. The values are stored as
+    strings in the file. Not terribly exciting.
+    
+    Finally, you can use the OAuth authenticator to connect to Twitter. In
+    code it all goes like this::
+    
+        MY_TWITTER_CREDS = os.path.expanduser('~/.my_app_credentials')
+        if not os.path.exists(MY_TWITTER_CREDS):
+            oauth_dance("My App Name", CONSUMER_KEY, CONSUMER_SECRET,
+                        MY_TWITTER_CREDS)
+    
+        oauth_token, oauth_secret = read_token_file(MY_TWITTER_CREDS)
+    
+        twitter = Twitter(auth=OAuth(
+            oauth_token, oauth_token_secret, CONSUMER_KEY, CONSUMER_SECRET))
+    
+        # Now work with Twitter
+        twitter.statuses.update(status='Hello, world!')
+
+PACKAGE CONTENTS
+    ansi
+    api
+    archiver
+    auth
+    cmdline
+    follow
+    ircbot
+    logger
+    oauth
+    oauth2
+    oauth_dance
+    stream
+    stream_example
+    timezones
+    twitter_globals
+    util
+
+CLASSES
+    __builtin__.object
+        twitter.api.TwitterResponse
+    exceptions.Exception(exceptions.BaseException)
+        twitter.api.TwitterError
+            twitter.api.TwitterHTTPError
+    twitter.api.TwitterCall(__builtin__.object)
+        twitter.api.Twitter
+        twitter.stream.TwitterStream
+    twitter.auth.Auth(__builtin__.object)
+        twitter.auth.NoAuth
+        twitter.auth.UserPassAuth
+        twitter.oauth.OAuth
+        twitter.oauth2.OAuth2
+    
+    class NoAuth(Auth)
+     |  No authentication authenticator.
+     |  
+     |  Method resolution order:
+     |      NoAuth
+     |      Auth
+     |      __builtin__.object
+     |  
+     |  Methods defined here:
+     |  
+     |  __init__(self)
+     |  
+     |  encode_params(self, base_url, method, params)
+     |  
+     |  generate_headers(self)
+     |  
+     |  ----------------------------------------------------------------------
+     |  Data descriptors inherited from Auth:
+     |  
+     |  __dict__
+     |      dictionary for instance variables (if defined)
+     |  
+     |  __weakref__
+     |      list of weak references to the object (if defined)
+    
+    class OAuth(twitter.auth.Auth)
+     |  An OAuth authenticator.
+     |  
+     |  Method resolution order:
+     |      OAuth
+     |      twitter.auth.Auth
+     |      __builtin__.object
+     |  
+     |  Methods defined here:
+     |  
+     |  __init__(self, token, token_secret, consumer_key, consumer_secret)
+     |      Create the authenticator. If you are in the initial stages of
+     |      the OAuth dance and don't yet have a token or token_secret,
+     |      pass empty strings for these params.
+     |  
+     |  encode_params(self, base_url, method, params)
+     |  
+     |  generate_headers(self)
+     |  
+     |  ----------------------------------------------------------------------
+     |  Data descriptors inherited from twitter.auth.Auth:
+     |  
+     |  __dict__
+     |      dictionary for instance variables (if defined)
+     |  
+     |  __weakref__
+     |      list of weak references to the object (if defined)
+    
+    class OAuth2(twitter.auth.Auth)
+     |  An OAuth2 application-only authenticator.
+     |  
+     |  Method resolution order:
+     |      OAuth2
+     |      twitter.auth.Auth
+     |      __builtin__.object
+     |  
+     |  Methods defined here:
+     |  
+     |  __init__(self, consumer_key=None, consumer_secret=None, bearer_token=None)
+     |      Create an authenticator. You can supply consumer_key and
+     |      consumer_secret if you are requesting a bearer_token. Otherwise
+     |      you must supply the bearer_token.
+     |  
+     |  encode_params(self, base_url, method, params)
+     |  
+     |  generate_headers(self)
+     |  
+     |  ----------------------------------------------------------------------
+     |  Data descriptors inherited from twitter.auth.Auth:
+     |  
+     |  __dict__
+     |      dictionary for instance variables (if defined)
+     |  
+     |  __weakref__
+     |      list of weak references to the object (if defined)
+    
+    class Twitter(TwitterCall)
+     |  The minimalist yet fully featured Twitter API class.
+     |  
+     |  Get RESTful data by accessing members of this class. The result
+     |  is decoded python objects (lists and dicts).
+     |  
+     |  The Twitter API is documented at:
+     |  
+     |    http://dev.twitter.com/doc
+     |  
+     |  
+     |  Examples::
+     |  
+     |      t = Twitter(
+     |          auth=OAuth(token, token_key, con_secret, con_secret_key)))
+     |  
+     |      # Get your "home" timeline
+     |      t.statuses.home_timeline()
+     |  
+     |      # Get a particular friend's tweets
+     |      t.statuses.user_timeline(user_id="billybob")
+     |  
+     |      # Update your status
+     |      t.statuses.update(
+     |          status="Using @sixohsix's sweet Python Twitter Tools.")
+     |  
+     |      # Send a direct message
+     |      t.direct_messages.new(
+     |          user="billybob",
+     |          text="I think yer swell!")
+     |  
+     |      # Get the members of tamtar's list "Things That Are Rad"
+     |      t._("tamtar")._("things-that-are-rad").members()
+     |  
+     |      # Note how the magic `_` method can be used to insert data
+     |      # into the middle of a call. You can also use replacement:
+     |      t.user.list.members(user="tamtar", list="things-that-are-rad")
+     |  
+     |      # An *optional* `_timeout` parameter can also be used for API
+     |      # calls which take much more time than normal or twitter stops
+     |      # responding for some reasone
+     |      t.users.lookup(
+     |          screen_name=','.join(A_LIST_OF_100_SCREEN_NAMES),             _timeout=1)
+     |  
+     |  
+     |  
+     |  Searching Twitter::
+     |  
+     |      # Search for the latest tweets about #pycon
+     |      t.search.tweets(q="#pycon")
+     |  
+     |  
+     |  Using the data returned
+     |  -----------------------
+     |  
+     |  Twitter API calls return decoded JSON. This is converted into
+     |  a bunch of Python lists, dicts, ints, and strings. For example::
+     |  
+     |      x = twitter.statuses.home_timeline()
+     |  
+     |      # The first 'tweet' in the timeline
+     |      x[0]
+     |  
+     |      # The screen name of the user who wrote the first 'tweet'
+     |      x[0]['user']['screen_name']
+     |  
+     |  
+     |  Getting raw XML data
+     |  --------------------
+     |  
+     |  If you prefer to get your Twitter data in XML format, pass
+     |  format="xml" to the Twitter object when you instantiate it::
+     |  
+     |      twitter = Twitter(format="xml")
+     |  
+     |  The output will not be parsed in any way. It will be a raw string
+     |  of XML.
+     |  
+     |  Method resolution order:
+     |      Twitter
+     |      TwitterCall
+     |      __builtin__.object
+     |  
+     |  Methods defined here:
+     |  
+     |  __init__(self, format=u'json', domain=u'api.twitter.com', secure=True, auth=None, api_version=<class 'twitter.api._DEFAULT'>)
+     |      Create a new twitter API connector.
+     |      
+     |      Pass an `auth` parameter to use the credentials of a specific
+     |      user. Generally you'll want to pass an `OAuth`
+     |      instance::
+     |      
+     |          twitter = Twitter(auth=OAuth(
+     |                  token, token_secret, consumer_key, consumer_secret))
+     |      
+     |      
+     |      `domain` lets you change the domain you are connecting. By
+     |      default it's `api.twitter.com`.
+     |      
+     |      If `secure` is False you will connect with HTTP instead of
+     |      HTTPS.
+     |      
+     |      `api_version` is used to set the base uri. By default it's
+     |      '1.1'.
+     |  
+     |  ----------------------------------------------------------------------
+     |  Methods inherited from TwitterCall:
+     |  
+     |  __call__(self, **kwargs)
+     |  
+     |  __getattr__(self, k)
+     |  
+     |  ----------------------------------------------------------------------
+     |  Data descriptors inherited from TwitterCall:
+     |  
+     |  __dict__
+     |      dictionary for instance variables (if defined)
+     |  
+     |  __weakref__
+     |      list of weak references to the object (if defined)
+    
+    class TwitterError(exceptions.Exception)
+     |  Base Exception thrown by the Twitter object when there is a
+     |  general error interacting with the API.
+     |  
+     |  Method resolution order:
+     |      TwitterError
+     |      exceptions.Exception
+     |      exceptions.BaseException
+     |      __builtin__.object
+     |  
+     |  Data descriptors defined here:
+     |  
+     |  __weakref__
+     |      list of weak references to the object (if defined)
+     |  
+     |  ----------------------------------------------------------------------
+     |  Methods inherited from exceptions.Exception:
+     |  
+     |  __init__(...)
+     |      x.__init__(...) initializes x; see help(type(x)) for signature
+     |  
+     |  ----------------------------------------------------------------------
+     |  Data and other attributes inherited from exceptions.Exception:
+     |  
+     |  __new__ = <built-in method __new__ of type object>
+     |      T.__new__(S, ...) -> a new object with type S, a subtype of T
+     |  
+     |  ----------------------------------------------------------------------
+     |  Methods inherited from exceptions.BaseException:
+     |  
+     |  __delattr__(...)
+     |      x.__delattr__('name') <==> del x.name
+     |  
+     |  __getattribute__(...)
+     |      x.__getattribute__('name') <==> x.name
+     |  
+     |  __getitem__(...)
+     |      x.__getitem__(y) <==> x[y]
+     |  
+     |  __getslice__(...)
+     |      x.__getslice__(i, j) <==> x[i:j]
+     |      
+     |      Use of negative indices is not supported.
+     |  
+     |  __reduce__(...)
+     |  
+     |  __repr__(...)
+     |      x.__repr__() <==> repr(x)
+     |  
+     |  __setattr__(...)
+     |      x.__setattr__('name', value) <==> x.name = value
+     |  
+     |  __setstate__(...)
+     |  
+     |  __str__(...)
+     |      x.__str__() <==> str(x)
+     |  
+     |  __unicode__(...)
+     |  
+     |  ----------------------------------------------------------------------
+     |  Data descriptors inherited from exceptions.BaseException:
+     |  
+     |  __dict__
+     |  
+     |  args
+     |  
+     |  message
+    
+    class TwitterHTTPError(TwitterError)
+     |  Exception thrown by the Twitter object when there is an
+     |  HTTP error interacting with twitter.com.
+     |  
+     |  Method resolution order:
+     |      TwitterHTTPError
+     |      TwitterError
+     |      exceptions.Exception
+     |      exceptions.BaseException
+     |      __builtin__.object
+     |  
+     |  Methods defined here:
+     |  
+     |  __init__(self, e, uri, format, uriparts)
+     |  
+     |  __str__(self)
+     |  
+     |  ----------------------------------------------------------------------
+     |  Data descriptors inherited from TwitterError:
+     |  
+     |  __weakref__
+     |      list of weak references to the object (if defined)
+     |  
+     |  ----------------------------------------------------------------------
+     |  Data and other attributes inherited from exceptions.Exception:
+     |  
+     |  __new__ = <built-in method __new__ of type object>
+     |      T.__new__(S, ...) -> a new object with type S, a subtype of T
+     |  
+     |  ----------------------------------------------------------------------
+     |  Methods inherited from exceptions.BaseException:
+     |  
+     |  __delattr__(...)
+     |      x.__delattr__('name') <==> del x.name
+     |  
+     |  __getattribute__(...)
+     |      x.__getattribute__('name') <==> x.name
+     |  
+     |  __getitem__(...)
+     |      x.__getitem__(y) <==> x[y]
+     |  
+     |  __getslice__(...)
+     |      x.__getslice__(i, j) <==> x[i:j]
+     |      
+     |      Use of negative indices is not supported.
+     |  
+     |  __reduce__(...)
+     |  
+     |  __repr__(...)
+     |      x.__repr__() <==> repr(x)
+     |  
+     |  __setattr__(...)
+     |      x.__setattr__('name', value) <==> x.name = value
+     |  
+     |  __setstate__(...)
+     |  
+     |  __unicode__(...)
+     |  
+     |  ----------------------------------------------------------------------
+     |  Data descriptors inherited from exceptions.BaseException:
+     |  
+     |  __dict__
+     |  
+     |  args
+     |  
+     |  message
+    
+    class TwitterResponse(__builtin__.object)
+     |  Response from a twitter request. Behaves like a list or a string
+     |  (depending on requested format) but it has a few other interesting
+     |  attributes.
+     |  
+     |  `headers` gives you access to the response headers as an
+     |  httplib.HTTPHeaders instance. You can do
+     |  `response.headers.get('h')` to retrieve a header.
+     |  
+     |  Data descriptors defined here:
+     |  
+     |  __dict__
+     |      dictionary for instance variables (if defined)
+     |  
+     |  __weakref__
+     |      list of weak references to the object (if defined)
+     |  
+     |  rate_limit_limit
+     |      The rate limit ceiling for that given request.
+     |  
+     |  rate_limit_remaining
+     |      Remaining requests in the current rate-limit.
+     |  
+     |  rate_limit_reset
+     |      Time in UTC epoch seconds when the rate limit will reset.
+    
+    class TwitterStream(twitter.api.TwitterCall)
+     |  The TwitterStream object is an interface to the Twitter Stream
+     |  API. This can be used pretty much the same as the Twitter class
+     |  except the result of calling a method will be an iterator that
+     |  yields objects decoded from the stream. For example::
+     |  
+     |      twitter_stream = TwitterStream(auth=OAuth(...))
+     |      iterator = twitter_stream.statuses.sample()
+     |  
+     |      for tweet in iterator:
+     |          ...do something with this tweet...
+     |  
+     |  The iterator will yield until the TCP connection breaks. When the
+     |  connection breaks, the iterator yields `{'hangup': True}`, and
+     |  raises `StopIteration` if iterated again.
+     |  
+     |  Similarly, if the stream does not produce heartbeats for more than
+     |  90 seconds, the iterator yields `{'hangup': True,
+     |  'heartbeat_timeout': True}`, and raises `StopIteration` if
+     |  iterated again.
+     |  
+     |  The `timeout` parameter controls the maximum time between
+     |  yields. If it is nonzero, then the iterator will yield either
+     |  stream data or `{'timeout': True}` within the timeout period. This
+     |  is useful if you want your program to do other stuff in between
+     |  waiting for tweets.
+     |  
+     |  The `block` parameter sets the stream to be fully non-blocking. In
+     |  this mode, the iterator always yields immediately. It returns
+     |  stream data, or `None`. Note that `timeout` supercedes this
+     |  argument, so it should also be set `None` to use this mode.
+     |  
+     |  Method resolution order:
+     |      TwitterStream
+     |      twitter.api.TwitterCall
+     |      __builtin__.object
+     |  
+     |  Methods defined here:
+     |  
+     |  __init__(self, domain=u'stream.twitter.com', secure=True, auth=None, api_version=u'1.1', block=True, timeout=None, heartbeat_timeout=90.0)
+     |  
+     |  ----------------------------------------------------------------------
+     |  Methods inherited from twitter.api.TwitterCall:
+     |  
+     |  __call__(self, **kwargs)
+     |  
+     |  __getattr__(self, k)
+     |  
+     |  ----------------------------------------------------------------------
+     |  Data descriptors inherited from twitter.api.TwitterCall:
+     |  
+     |  __dict__
+     |      dictionary for instance variables (if defined)
+     |  
+     |  __weakref__
+     |      list of weak references to the object (if defined)
+    
+    class UserPassAuth(Auth)
+     |  Basic auth authentication using email/username and
+     |  password. Deprecated.
+     |  
+     |  Method resolution order:
+     |      UserPassAuth
+     |      Auth
+     |      __builtin__.object
+     |  
+     |  Methods defined here:
+     |  
+     |  __init__(self, username, password)
+     |  
+     |  encode_params(self, base_url, method, params)
+     |  
+     |  generate_headers(self)
+     |  
+     |  ----------------------------------------------------------------------
+     |  Data descriptors inherited from Auth:
+     |  
+     |  __dict__
+     |      dictionary for instance variables (if defined)
+     |  
+     |  __weakref__
+     |      list of weak references to the object (if defined)
+
+FUNCTIONS
+    oauth_dance(app_name, consumer_key, consumer_secret, token_filename=None)
+        Perform the OAuth dance with some command-line prompts. Return the
+        oauth_token and oauth_token_secret.
+        
+        Provide the name of your app in `app_name`, your consumer_key, and
+        consumer_secret. This function will open a web browser to let the
+        user allow your app to access their Twitter account. PIN
+        authentication is used.
+        
+        If a token_filename is given, the oauth tokens will be written to
+        the file.
+    
+    read_token_file(filename)
+        Read a token file and return the oauth token and oauth token secret.
+    
+    write_token_file(filename, oauth_token, oauth_token_secret)
+        Write a token file to hold the oauth token and oauth token secret.
+
+DATA
+    __all__ = ['Twitter', 'TwitterStream', 'TwitterResponse', 'TwitterErro...
+
+
