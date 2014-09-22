@@ -13,9 +13,11 @@ import string
 import re
 
 # global var
-db_file_name = "Twitter_feed.sqite"
+db_file_name = "Twitter_feed.sqlite"
 table_name = "tweets"
 valid_ch_list = list(string.lowercase) +  list(string.uppercase) + list(string.punctuation) + range(0,10) + [' ']
+WORLD_WOE_ID = 1
+US_WOE_ID = 23424977
 
 class TwitterApi:
 	def __init__(self):
@@ -52,14 +54,16 @@ class TwitterApi:
 		# For illustrative purposes, when all else fails, search for Justin Bieber
 		# and something is sure to turn up (at least, on Twitter)
 		c_count=0
-		print "Saving tweets to database...%d" % c_count
+		print "Saving tweets to database...and text file....%d" % c_count
+		file_h = open(self.get_text_file_name(keyword,count),'w')
 		for tweet in stream:
 			# Save to a database in a particular collection
 			text = self.extract_text(tweet['text'])
-			c_count += self.save_text(text)
+			c_count += self.save_text(text,file_h)
 			if c_count%1000 == 0:
 				print "Saving tweets to database...%d" % c_count
 			if c_count >= count:
+				file_h.close()
 				self.db.close_db()
 				break
 
@@ -71,7 +75,8 @@ class TwitterApi:
 		# For illustrative purposes, when all else fails, search for Justin Bieber
 		# and something is sure to turn up (at least, on Twitter)
 		for tweet in stream:
-			print tweet['text']
+			if 'text' in tweet:
+				print tweet['text']
 
 
 	def get_tweets(self,key="fun",count=10):
@@ -104,26 +109,66 @@ class TwitterApi:
 	def extract_text(self,tweet):
 		return self.clean_string(tweet)
 
-	def save_text(self,text):
+	def save_text(self,text,file_h):
 		if text:
 			sql  = "SELECT * FROM %s WHERE tweet = '%s'" % (table_name, text)
 			res = self.db.get_one(sql)
 			if not res: # if does not exist
+				# save to text file
+				file_h.write(text + "\n") 
 				sql = "INSERT INTO %s (tweet) VALUES ('%s')" % (table_name, text) 
 				self.db.execute_sql(sql)
 				return 1
 		return 0
 
+	def get_trends(self,place_id):
+		results = self.api_manager.trends.place(_id=place_id)
+		#print results 
+		for location in results:
+			for trend in location["trends"]:
+				print " - %s" % trend["name"]
+
+
+	def get_text_file_name(self,keyword=None,count=0):
+		if not keyword:
+			return "tweets_trends.text"
+		else:
+			if count==0:
+				return "tweets_" + keyword + ".text"
+			else:
+				return "tweets_" + keyword + "_" + str(count) + ".text"
+
 # commend line option
 if __name__ == '__main__':
 	# set api_manager
 	tapi = TwitterApi()
-	"""
-	for tweet in tapi.get_tweets(count=20,key="funny"):
-		print "Tweet::: %s"  % tweet 
-		print "Tweet<<< %s"  % tapi.extract_text(tweet) 
-	"""
+	
+	# for tweet in tapi.get_tweets(count=20,key="rivers"):
+	# 	print "Tweet::: %s"  % tweet 
+	# 	print "Tweet<<< %s"  % tapi.extract_text(tweet) 
 
-	#tapi.get_stream("love")
-	tapi.save_stream("funny",10000)
+	keyword, count = None, 0
+	if len(sys.argv)>1:
+		keyword = sys.argv[1]
+
+	if len(sys.argv)>2:
+		count = int(sys.argv[2])
+
+
+	if not keyword:
+		print "WORLD -----------------"
+		tapi.get_trends(WORLD_WOE_ID)
+		print "US  -----------------"
+		tapi.get_trends(US_WOE_ID)
+	else:
+		if count==0:
+			tapi.get_stream(keyword)
+		else:
+			tapi.save_stream(keyword, count)
+
+
+
+	# tapi.get_stream("#BORvAFC")
+	#tapi.get_stream("funny")
+	#tapi.save_stream("funny",10000)
 	
